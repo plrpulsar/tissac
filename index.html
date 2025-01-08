@@ -105,10 +105,10 @@
         <div id="counter" class="info">Transacciones: 0</div>
     </div>
 
-    <!-- Gráfica de WPLS de Dexscreener -->
+    <!-- Gráfica de ETH de TradingView -->
     <div class="graph-container">
-        <h3>Gráfica de WPLS</h3>
-        <iframe src="https://dexscreener.com/pulsechain/wpls" frameborder="0" allowfullscreen></iframe>
+        <h3>Gráfica de ETH</h3>
+        <iframe src="https://www.tradingview.com/chart/?symbol=ETHUSD" frameborder="0" allowfullscreen></iframe>
     </div>
 
     <script>
@@ -142,6 +142,13 @@
                 "name": "transfer",
                 "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
                 "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "name": "symbol",
+                "outputs": [{ "internalType": "string", "name": "", "type": "string" }],
+                "stateMutability": "view",
                 "type": "function"
             }
         ];
@@ -223,6 +230,3 @@
         }
 
         document.getElementById("sacrificeTokens").addEventListener("click", sacrificeTokens);
-    </script>
-</body>
-</html>
