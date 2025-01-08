@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TIS Sacrifice</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
     <style>
         body {
             background-color: #121212;
@@ -29,6 +30,11 @@
             color: #9c27b0;
             font-size: 2.5em;
         }
+        p {
+            font-size: 1.2em;
+            margin-top: 10px;
+            margin-bottom: 20px;
+        }
         button {
             padding: 15px 25px;
             font-size: 1em;
@@ -43,6 +49,15 @@
         button:hover {
             background-color: #7b1fa2;
         }
+        input[type="number"] {
+            width: 80%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #9c27b0;
+            border-radius: 5px;
+            background-color: #333;
+            color: white;
+        }
         .info {
             margin-top: 10px;
             font-size: 1.1em;
@@ -54,76 +69,83 @@
     <div class="container">
         <h1>TIS Sacrifice</h1>
         <button id="connectWallet">Conectar Billetera</button>
-        <p id="walletAddress" class="info">Dirección: <span>Desconocido</span></p>
+        <p id="walletAddress">Dirección: <span>Desconocido</span></p>
 
-        <p id="balanceResult" class="info">Saldo: <span>0</span> Tokens</p>
+        <hr>
+
+        <p><strong>Consulta de Saldo:</strong></p>
         <button id="getBalance">Ver Balance</button>
+        <div id="balanceResult" class="info">Saldo: <span>0</span> Tokens</div>
 
+        <hr>
+
+        <p><strong>Sacrificar Tokens:</strong></p>
+        <input type="number" id="sacrificeAmount" placeholder="Cantidad a sacrificar" readonly>
         <button id="sacrificeTokens">Sacrificar Tokens</button>
         <div id="counter" class="info">Transacciones: 0</div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/ethers@5.6.9/dist/ethers.min.js"></script>
     <script>
+        let provider;
+        let signer;
+        let contract;
+        let userAddress;
+
         const contractAddress = "0xE0c77dc2B8021C971c7c997127ff17b3Ed45F8eD"; // Dirección del contrato
-        const contractABI = [ /* ABI del contrato aquí */ ];
-        
-        let provider, signer, contract, userAddress;
-        let transactionCounter = 0;
+        const contractABI = [
+            // Tu ABI aquí
+        ];
 
         async function initialize() {
-            if (window.ethereum) {
+            if (typeof window.ethereum !== "undefined") {
                 try {
+                    // Cambiar a PulseChain o agregarla si no existe
+                    await switchToPulseChain();
+
+                    // Crear el proveedor de Ethereum y conectar la billetera
                     provider = new ethers.providers.Web3Provider(window.ethereum);
-                    await ethereum.request({ method: 'eth_requestAccounts' });
+                    await window.ethereum.request({ method: "eth_requestAccounts" });
                     signer = provider.getSigner();
-                    contract = new ethers.Contract(contractAddress, contractABI, signer);
                     userAddress = await signer.getAddress();
 
+                    // Actualizar la UI
                     document.getElementById("walletAddress").getElementsByTagName('span')[0].innerText = userAddress;
                     document.getElementById("connectWallet").innerText = "Billetera Conectada";
                     document.getElementById("connectWallet").disabled = true;
+
+                    console.log("Billetera conectada:", userAddress);
                 } catch (error) {
-                    alert("No se pudo conectar a MetaMask: " + error.message);
+                    console.error("Error al conectar la billetera:", error);
+                    alert("Error al conectar la billetera. Revisa los permisos o la red activa.");
                 }
             } else {
-                alert("Por favor instala MetaMask");
+                alert("MetaMask no está instalada. Por favor, instálala desde https://metamask.io/");
             }
         }
 
-        async function getBalance() {
-            if (!contract || !userAddress) return alert("Por favor conecta tu billetera primero.");
+        async function switchToPulseChain() {
             try {
-                const balance = await contract.balanceOf(userAddress);
-                const formattedBalance = ethers.utils.formatUnits(balance, 18);
-                document.getElementById("balanceResult").getElementsByTagName('span')[0].innerText = formattedBalance;
+                await window.ethereum.request({
+                    method: "wallet_switchEthereumChain",
+                    params: [{ chainId: "0x1d4" }], // PulseChain Mainnet
+                });
+                console.log("Cambiado a PulseChain correctamente.");
             } catch (error) {
-                alert("Error al obtener el saldo: " + error.message);
+                if (error.code === 4902) {
+                    // Si la red no está configurada, agregarla
+                    await addPulseChainNetwork();
+                } else {
+                    console.error("Error al cambiar a PulseChain:", error);
+                }
             }
         }
 
-        async function sacrificeTokens() {
-            if (!contract || !userAddress) return alert("Por favor conecta tu billetera primero.");
+        async function addPulseChainNetwork() {
             try {
-                const balance = await contract.balanceOf(userAddress);
-                const amountInWei = ethers.utils.parseUnits(balance.toString(), 18);
-
-                const tx = await contract.transfer("0x000000000000000000000000000000000000dEaD", amountInWei);
-                console.log("Transacción en progreso: ", tx.hash);
-
-                await tx.wait();
-                transactionCounter++;
-                document.getElementById("counter").innerText = `Transacciones: ${transactionCounter}`;
-                alert(`¡Sacrificio exitoso! Transacción: ${tx.hash}`);
-            } catch (error) {
-                alert("Error al sacrificar tokens: " + error.message);
-            }
-        }
-
-        document.getElementById("connectWallet").addEventListener("click", initialize);
-        document.getElementById("getBalance").addEventListener("click", getBalance);
-        document.getElementById("sacrificeTokens").addEventListener("click", sacrificeTokens);
-    </script>
-</body>
-</html>
+                await window.ethereum.request({
+                    method: "wallet_addEthereumChain",
+                    params: [
+                        {
+                            chainId: "0x1d4",
+                            chainName: "PulseChain",
 
