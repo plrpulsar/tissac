@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sacrificar Tokens</title>
+    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: space-between;
+            padding: 20px;
+        }
+        .container {
+            width: 45%;
+        }
+        .sidebar {
+            width: 45%;
+            padding: 20px;
+            background-color: #f3f3f3;
+            border-radius: 8px;
+        }
+        .header {
+            text-align: center;
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+        input, select, button {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+        }
+        .status {
+            font-size: 16px;
+            margin-top: 20px;
+        }
+        .balance {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="header">Sacrificar Tokens</h1>
+        <div>
+            <label for="tokenSelect">Selecciona el token:</label>
+            <select id="tokenSelect">
+                <option value="PLS">PLS</option>
+                <option value="HEX">HEX</option>
+                <option value="WPLS">WPLS</option>
+            </select>
+        </div>
+        <div>
+            <label for="sacrificeAmount">Cantidad a sacrificar:</label>
+            <input type="number" id="sacrificeAmount" placeholder="Cantidad en tokens">
+        </div>
+        <button id="approveButton">Aprobar Tokens</button>
+        <button id="sacrificeButton">Sacrificar Tokens</button>
+        <div id="transactionStatus" class="status"></div>
+    </div>
+    <div class="sidebar">
+        <h2>Detalles de Usuario</h2>
+        <div id="userAddress">
+            <strong>Dirección de Billetera:</strong> <span id="walletAddress">No conectado</span>
+        </div>
+        <div id="balances" class="balance">
+            <strong>Balance de Tokens:</strong>
+            <ul id="tokenBalances">
+                <li>PLS: 0</li>
+                <li>HEX: 0</li>
+                <li>WPLS: 0</li>
+            </ul>
+        </div>
+        <div id="transactionHistory">
+            <strong>Historial de Sacrificios:</strong>
+            <ul>
+                <li>No hay transacciones recientes.</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        const contracts = {
+            PLS: "0x...",
+            HEX: "0x...",
+            WPLS: "0x..."
+        };
+        const contractAddress = "0x90138bCcfD0280293fD8A82Bf79f51D7c4e0C921";  // Dirección del contrato de sacrificio
+
+        const erc20Abi = [
+            // ABI de ERC-20
+            {
+                "constant": false,
+                "inputs": [{"name": "spender", "type": "address"}, {"name": "amount", "type": "uint256"}],
+                "name": "approve",
+                "outputs": [{"name": "", "type": "bool"}],
+                "payable": false,
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "constant": false,
+                "inputs": [{"name": "from", "type": "address"}, {"name": "to", "type": "address"}, {"name": "amount", "type": "uint256"}],
+                "name": "transferFrom",
+                "outputs": [{"name": "", "type": "bool"}],
+                "payable": false,
+                "stateMutability": "nonpayable",
+                "type": "function"
+            }
+        ];
+
+        let provider, signer;
+        let userAddress = "";
+        let tokenBalances = {
+            PLS: 0,
+            HEX: 0,
+            WPLS: 0
+        };
+
+        async function initialize() {
+            if (typeof window.ethereum !== "undefined") {
+                provider = new ethers.providers.Web3Provider(window.ethereum);
+                await provider.send("eth_requestAccounts", []);
+                signer = provider.getSigner();
+                userAddress = await signer.getAddress();
+                document.getElementById("walletAddress").textContent = userAddress;
+                await updateBalances();
+            } else {
+                alert("MetaMask no está instalado.");
+            }
+        }
+
+        async function updateBalances() {
+            for (const token of Object.keys(tokenBalances)) {
+                const tokenAddress = contracts[token];
+                const tokenContract = new ethers.Contract(tokenAddress, erc20Abi, signer);
+                const balance = await tokenContract.balanceOf(userAddress);
+                tokenBalances[token] = ethers.utils.formatUnits(balance, 18);
+            }
+            displayBalances();
+        }
+
+        function displayBalances() {
+            const balanceList = document.getElementById("tokenBalances");
+            balanceList.innerHTML = "";
+            for (const token of Object.keys(tokenBalances)) {
+                const balanceItem = document.createElement("li");
+                balanceItem.textContent = `${token}: ${tokenBalances[token]}`;
+                balanceList.appendChild(balanceItem);
+            }
+        }
+
+        document.getElementById("approveButton").addEventListener("click", async () => {
+            const token = document.getElementById("tokenSelect").value;
+            const amount = document.getElementById("sacrificeAmount").value;
+
+            if (amount <= 0) {
+                alert("Ingresa una cantidad válida.");
+                return;
+            }
+
+            const tokenAddress = contracts[token];
+            const success = await approveTokens(tokenAddress, contractAddress, amount);
+            if (success) {
+                alert("Tokens aprobados.");
+                await updateBalances();
+            }
+        });
+
+        document.getElementById("sacrificeButton").addEventListener("click", async () => {
+            const token = document.getElementById("tokenSelect").value;
+            const amount = document.getElementById("sacrificeAmount").value;
+
+            if (amount <= 0) {
+                alert("Ingresa una cantidad válida.");
+                return;
+            }
+
+            const tokenAddress = contracts[token];
+            const success = await sacrificeTokens(tokenAddress, signer.getAddress(), amount);
+            if (success) {
+                alert("Tokens sacrificados.");
+                await updateBalances();
+            }
+        });
+
+        async function approveTokens(tokenAddress, spender, amount) {
+            const tokenContract = new ethers.Contract(tokenAddress, erc20Abi, signer);
+            const amountInWei = ethers.utils.parseUnits(amount, 18);
+
+            try {
+                const tx = await tokenContract.approve(spender, amountInWei);
+                await tx.wait();
+                return true;
+            } catch (error) {
+                console.error("Error al aprobar los tokens:", error);
+                return false;
+            }
+        }
+
+        async function sacrificeTokens(tokenAddress, fromAddress, amount) {
+            const tokenContract = new ethers.Contract(tokenAddress, erc20Abi, signer);
+            const amountInWei = ethers.utils.parseUnits(amount, 18);
+
+            try {
+                const tx = await tokenContract.transferFrom(fromAddress, contractAddress, amountInWei);
+                await tx.wait();
+                return true;
+            } catch (error) {
+                console.error("Error al sacrificar tokens:", error);
+                return false;
+            }
+        }
+
+        window.onload = initialize;
+    </script>
+</body>
+</html>
