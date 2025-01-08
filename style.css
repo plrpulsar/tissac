@@ -1,8 +1,8 @@
 /* Estilo base para el fondo oscuro */
 body {
-    font-family: Arial, sans-serif;
-    background-color: #1e1e1e;
-    color: #fff;
+    font-family: 'Roboto', sans-serif;
+    background-color: #121212;
+    color: #e0e0e0;
     margin: 0;
     padding: 0;
     display: flex;
@@ -13,13 +13,14 @@ body {
 }
 
 h1, h2, p {
-    color: #fff;
+    color: #e0e0e0;
     text-align: center;
 }
 
 h1 {
-    font-size: 36px;
+    font-size: 48px;
     margin-bottom: 20px;
+    font-weight: 700;
 }
 
 /* Estilo del contenedor principal */
@@ -28,14 +29,14 @@ h1 {
     max-width: 800px;
     margin: 0 auto;
     padding: 20px;
-    background: #333;
-    border-radius: 10px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+    background: #1e1e1e;
+    border-radius: 15px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
 }
 
 /* Estilo de los botones */
 button {
-    background-color: #9b59b6; /* Color morado brillante */
+    background-color: #6200ea; /* Color morado brillante */
     border: none;
     color: #fff;
     padding: 15px 32px;
@@ -43,14 +44,14 @@ button {
     text-decoration: none;
     display: inline-block;
     font-size: 16px;
-    border-radius: 5px;
+    border-radius: 8px;
     cursor: pointer;
     margin: 10px 0;
     transition: all 0.3s ease;
 }
 
 button:hover {
-    background-color: #8e44ad;
+    background-color: #3700b3;
     transform: scale(1.05);
 }
 
@@ -59,15 +60,15 @@ input[type="text"], input[type="number"], input[type="button"] {
     width: 100%;
     padding: 15px;
     margin: 10px 0;
-    background-color: #444;
+    background-color: #333;
     color: #fff;
     border: none;
-    border-radius: 5px;
+    border-radius: 8px;
     font-size: 16px;
 }
 
 input[type="text"]:focus, input[type="number"]:focus {
-    background-color: #555;
+    background-color: #444;
     outline: none;
 }
 
@@ -78,7 +79,7 @@ input[type="text"]:focus, input[type="number"]:focus {
 
 .wallet-info span, .balance-info span, .sacrifice-info span {
     font-weight: bold;
-    color: #9b59b6;
+    color: #6200ea;
 }
 
 /* Contenedor de transacciones */
@@ -86,14 +87,14 @@ input[type="text"]:focus, input[type="number"]:focus {
     margin: 20px 0;
     font-size: 18px;
     color: #fff;
-    background-color: #333;
+    background-color: #1e1e1e;
     padding: 10px;
-    border-radius: 5px;
+    border-radius: 8px;
 }
 
 /* Estilo de los enlaces */
 a {
-    color: #9b59b6;
+    color: #6200ea;
     text-decoration: none;
 }
 
@@ -109,7 +110,7 @@ footer {
 }
 
 footer a {
-    color: #9b59b6;
+    color: #6200ea;
 }
 
 /* Estilos de transición */
@@ -150,12 +151,6 @@ button:hover:before {
 }
 
 #walletAddress span {
-    color: #9b59b6;
+    color: #6200ea;
     font-weight: bold;
-}
-
-/* Estilo para los títulos del formulario */
-form h2 {
-    margin-top: 20px;
-    color: #fff;
 }
