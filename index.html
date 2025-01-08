@@ -30,7 +30,7 @@
             color: #9c27b0;
             font-size: 2.5em;
         }
-        p {
+        p, label {
             font-size: 1.2em;
             margin-top: 10px;
             margin-bottom: 20px;
@@ -74,78 +74,135 @@
         <hr>
 
         <p><strong>Consulta de Saldo:</strong></p>
+        <div id="tokenInfo">
+            Token a sacrificar: <span id="tokenSymbol">Desconocido</span>
+        </div>
         <button id="getBalance">Ver Balance</button>
         <div id="balanceResult" class="info">Saldo: <span>0</span> Tokens</div>
 
         <hr>
 
         <p><strong>Sacrificar Tokens:</strong></p>
-        <input type="number" id="sacrificeAmount" placeholder="Cantidad a sacrificar" readonly>
+        <input type="number" id="sacrificeAmount" placeholder="Cantidad a sacrificar">
+        <button id="approveTokens">Aprobar Tokens</button>
         <button id="sacrificeTokens">Sacrificar Tokens</button>
         <div id="counter" class="info">Transacciones: 0</div>
     </div>
 
     <script>
-        let provider;
-        let signer;
-        let contract;
-        let userAddress;
+        let provider, signer, contract, userAddress;
 
         const contractAddress = "0xE0c77dc2B8021C971c7c997127ff17b3Ed45F8eD"; // Dirección del contrato
+        const tokenAddress = "0xTokenAddressHere"; // Dirección del token
         const contractABI = [
-            // Tu ABI aquí
+            {
+                "inputs": [
+                    { "internalType": "address", "name": "spender", "type": "address" },
+                    { "internalType": "uint256", "name": "amount", "type": "uint256" }
+                ],
+                "name": "approve",
+                "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [{ "internalType": "address", "name": "account", "type": "address" }],
+                "name": "balanceOf",
+                "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "name": "symbol",
+                "outputs": [{ "internalType": "string", "name": "", "type": "string" }],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    { "internalType": "address", "name": "recipient", "type": "address" },
+                    { "internalType": "uint256", "name": "amount", "type": "uint256" }
+                ],
+                "name": "transfer",
+                "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            }
         ];
 
         async function initialize() {
             if (typeof window.ethereum !== "undefined") {
                 try {
-                    // Cambiar a PulseChain o agregarla si no existe
-                    await switchToPulseChain();
-
-                    // Crear el proveedor de Ethereum y conectar la billetera
                     provider = new ethers.providers.Web3Provider(window.ethereum);
-                    await window.ethereum.request({ method: "eth_requestAccounts" });
+                    await provider.send("eth_requestAccounts", []);
                     signer = provider.getSigner();
                     userAddress = await signer.getAddress();
-
-                    // Actualizar la UI
                     document.getElementById("walletAddress").getElementsByTagName('span')[0].innerText = userAddress;
+
+                    contract = new ethers.Contract(tokenAddress, contractABI, signer);
+
+                    const symbol = await contract.symbol();
+                    document.getElementById("tokenSymbol").innerText = symbol;
+
                     document.getElementById("connectWallet").innerText = "Billetera Conectada";
                     document.getElementById("connectWallet").disabled = true;
-
-                    console.log("Billetera conectada:", userAddress);
                 } catch (error) {
-                    console.error("Error al conectar la billetera:", error);
-                    alert("Error al conectar la billetera. Revisa los permisos o la red activa.");
+                    alert("Error al conectar la billetera: " + error.message);
                 }
             } else {
                 alert("MetaMask no está instalada. Por favor, instálala desde https://metamask.io/");
             }
         }
 
-        async function switchToPulseChain() {
+        async function getBalance() {
             try {
-                await window.ethereum.request({
-                    method: "wallet_switchEthereumChain",
-                    params: [{ chainId: "0x1d4" }], // PulseChain Mainnet
-                });
-                console.log("Cambiado a PulseChain correctamente.");
+                const balance = await contract.balanceOf(userAddress);
+                const formattedBalance = ethers.utils.formatUnits(balance, 18); // Asumiendo 18 decimales
+                document.getElementById("balanceResult").getElementsByTagName('span')[0].innerText = formattedBalance;
             } catch (error) {
-                if (error.code === 4902) {
-                    // Si la red no está configurada, agregarla
-                    await addPulseChainNetwork();
-                } else {
-                    console.error("Error al cambiar a PulseChain:", error);
-                }
+                alert("Error al obtener el saldo: " + error.message);
             }
         }
 
-        async function addPulseChainNetwork() {
+        async function approveTokens() {
             try {
-                await window.ethereum.request({
-                    method: "wallet_addEthereumChain",
-                    params: [
-                        {
-                            chainId: "0x1d4",
-                            chainName: "PulseChain",
+                const amount = document.getElementById("sacrificeAmount").value;
+                if (amount <= 0) {
+                    alert("Por favor, ingresa una cantidad válida.");
+                    return;
+                }
+                const amountInWei = ethers.utils.parseUnits(amount, 18);
+                const tx = await contract.approve(contractAddress, amountInWei);
+                await tx.wait();
+                alert("Tokens aprobados correctamente.");
+            } catch (error) {
+                alert("Error al aprobar tokens: " + error.message);
+            }
+        }
+
+        async function sacrificeTokens() {
+            try {
+                const amount = document.getElementById("sacrificeAmount").value;
+                if (amount <= 0) {
+                    alert("Por favor, ingresa una cantidad válida.");
+                    return;
+                }
+                const amountInWei = ethers.utils.parseUnits(amount, 18);
+                const tx = await contract.transfer("0x000000000000000000000000000000000000dEaD", amountInWei); // Dirección de quema
+                await tx.wait();
+                alert("Tokens sacrificados correctamente.");
+            } catch (error) {
+                alert("Error al sacrificar tokens: " + error.message);
+            }
+        }
+
+        document.getElementById("connectWallet").addEventListener("click", initialize);
+        document.getElementById("getBalance").addEventListener("click", getBalance);
+        document.getElementById("approveTokens").addEventListener("click", approveTokens);
+        document.getElementById("sacrificeTokens").addEventListener("click", sacrificeTokens);
+    </script>
+</body>
+</html>
+
 
