@@ -91,6 +91,8 @@
             <option value="HEX">HEX</option>
             <option value="WETH">WETH</option>
             <option value="USDT">USDT</option>
+            <option value="PLS">PLS</option>
+            <option value="WPLS">WPLS</option>
         </select>
 
         <p><strong>Introduce la cantidad a sacrificar:</strong></p>
@@ -106,12 +108,17 @@
         let provider, signer, userAddress;
         const contractAddress = "0xE0c77dc2B8021C971c7c997127ff17b3Ed45F8eD"; // Dirección del contrato TIS
         const sacrificeAddress = "0x90138bCcfD0280293fD8A82Bf79f51D7c4e0C921"; // Dirección para recibir los tokens sacrificados
+
+        // Direcciones de los contratos de los tokens en PulseChain
         const contracts = {
-            "INC": "0x8fa8c7ed3fa85c129b6ca3fa2cf0294b39c1b580",  // Dirección del contrato INC en PulseChain
-            "HEX": "0xD2f9dF2e1e1c3b3b128D4cDe6b39D42F98e1a7C0",  // Dirección del contrato HEX en PulseChain
-            "WETH": "0x0B6e3A1D70b9F458742fD5A41570e529caE31bC2", // Dirección del contrato WETH en PulseChain
-            "USDT": "0x2348f40c25609b7e9a079b29293edfe9b38d06a9"  // Dirección del contrato USDT en PulseChain
+            "INC": "0x8fa8c7ed3fa85c129b6ca3fa2cf0294b39c1b580",
+            "HEX": "0xD2f9dF2e1e1c3b3b128D4cDe6b39D42F98e1a7C0",
+            "WETH": "0x0B6e3A1D70b9F458742fD5A41570e529caE31bC2",
+            "USDT": "0x2348f40c25609b7e9a079b29293edfe9b38d06a9",
+            "PLS": "0x00e9e5db68b4385de66a33b68d30b079bc4a3ff2",
+            "WPLS": "0x338ff3a1b2776c8bbbd8f1c4d63c64dd1f4287d3"
         };
+
         let currentTokenAddress;
 
         async function initialize() {
