@@ -91,4 +91,3 @@ async function sacrificeTokens() {
 document.getElementById("connectWallet").addEventListener("click", connectWallet);
 document.getElementById("approveTokens").addEventListener("click", approveTokens);
 document.getElementById("sacrificeTokens").addEventListener("click", sacrificeTokens);
-
