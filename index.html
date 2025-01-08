@@ -17,34 +17,26 @@
             justify-content: center;
             align-items: center;
             height: 100vh;
+            flex-direction: column;
         }
-
         .container {
             text-align: center;
             padding: 20px;
             background-color: #1a1a1a;
             border-radius: 10px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.6);
-            width: 420px;
-            max-width: 100%;
+            width: 400px;
+            margin-bottom: 20px;
         }
-
         h1 {
             color: #9c27b0;
             font-size: 2.5em;
-            margin-bottom: 20px;
         }
-
-        .section {
-            margin-bottom: 30px;
-        }
-
         p, label {
-            font-size: 1.1em;
+            font-size: 1.2em;
             margin-top: 10px;
             margin-bottom: 20px;
         }
-
         button {
             padding: 15px 25px;
             font-size: 1em;
@@ -56,12 +48,10 @@
             margin: 10px;
             transition: background-color 0.3s;
         }
-
         button:hover {
             background-color: #7b1fa2;
         }
-
-        input[type="number"], select {
+        input[type="number"] {
             width: 80%;
             padding: 10px;
             margin: 10px 0;
@@ -70,78 +60,93 @@
             background-color: #333;
             color: white;
         }
-
         .info {
             margin-top: 10px;
             font-size: 1.1em;
             color: #bb86fc;
         }
 
-        .select-container {
-            margin: 20px 0;
-        }
-
-        hr {
-            border-top: 1px solid #9c27b0;
+        /* Estilo para la gráfica */
+        .graph-container {
+            width: 80%;
+            max-width: 1200px;
             margin-top: 20px;
-            margin-bottom: 20px;
         }
-
+        iframe {
+            width: 100%;
+            height: 400px;
+            border: none;
+        }
     </style>
 </head>
 <body>
+
+    <!-- Conectar la billetera -->
     <div class="container">
         <h1>TIS Sacrifice</h1>
-
-        <!-- Sección de Conexión de Billetera -->
-        <div class="section">
-            <button id="connectWallet">Conectar Billetera</button>
-            <p id="walletAddress">Dirección: <span>Desconocido</span></p>
-        </div>
-
-        <!-- Sección de Consulta de Balance -->
-        <div class="section">
-            <p><strong>Consulta de Saldo:</strong></p>
-            <div id="tokenInfo">Token a sacrificar: <span id="tokenSymbol">Desconocido</span></div>
-            <button id="getBalance">Ver Balance</button>
-            <div id="balanceResult" class="info">Saldo: <span>0</span> Tokens</div>
-        </div>
-
-        <!-- Sección de Selección de Moneda a Sacrificar -->
-        <div class="section select-container">
-            <p><strong>Selecciona Moneda para Sacrificar:</strong></p>
-            <select id="selectToken">
-                <option value="hex">HEX</option>
-                <option value="wpls">WPLS</option>
-                <option value="pls">PLS</option>
-            </select>
-        </div>
-
-        <!-- Sección de Sacrificio -->
-        <div class="section">
-            <p><strong>Sacrificar Tokens:</strong></p>
-            <input type="number" id="sacrificeAmount" placeholder="Cantidad a sacrificar">
-            <button id="approveTokens">Aprobar Tokens</button>
-            <button id="sacrificeTokens">Sacrificar Tokens</button>
-            <div id="counter" class="info">Transacciones: 0</div>
-        </div>
+        <button id="connectWallet">Conectar Billetera</button>
+        <p id="walletAddress">Dirección: <span>Desconocido</span></p>
 
         <hr>
 
-        <!-- Gráfica de WPLS de Dexscreener (por ejemplo) -->
-        <div class="section">
-            <h3>Gráfica de WPLS</h3>
-            <iframe src="https://dexscreener.com/pulsechain/wpls" width="100%" height="400"></iframe>
+        <p><strong>Consulta de Saldo:</strong></p>
+        <div id="tokenInfo">
+            Token a sacrificar: <span id="tokenSymbol">Desconocido</span>
         </div>
+        <button id="getBalance">Ver Balance</button>
+        <div id="balanceResult" class="info">Saldo: <span>0</span> Tokens</div>
+
+        <hr>
+
+        <p><strong>Sacrificar Tokens:</strong></p>
+        <input type="number" id="sacrificeAmount" placeholder="Cantidad a sacrificar">
+        <button id="approveTokens">Aprobar Tokens</button>
+        <button id="sacrificeTokens">Sacrificar Tokens</button>
+        <div id="counter" class="info">Transacciones: 0</div>
+    </div>
+
+    <!-- Gráfica de WPLS de Dexscreener -->
+    <div class="graph-container">
+        <h3>Gráfica de WPLS</h3>
+        <iframe src="https://dexscreener.com/pulsechain/wpls" frameborder="0" allowfullscreen></iframe>
     </div>
 
     <script>
         let provider, signer, contract, userAddress;
 
-        const contractAddress = "0x16E0Adc89269E9c0F4f14B5b0AF786365ACBaC6b"; // Dirección del contrato
-        const tokenAddress = "0xTokenAddressHere"; // Dirección del token
-        const contractABI = [ /* ABI aquí */ ];
+        const contractAddress = "0xE0c77dc2B8021C971c7c997127ff17b3Ed45F8eD"; // Dirección del contrato
+        const tokenAddress = "0x16E0Adc89269E9c0F4f14B5b0AF786365ACBaC6b"; // Dirección del token (TIS)
+        const contractABI = [
+            {
+                "inputs": [
+                    { "internalType": "address", "name": "spender", "type": "address" },
+                    { "internalType": "uint256", "name": "amount", "type": "uint256" }
+                ],
+                "name": "approve",
+                "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [{ "internalType": "address", "name": "account", "type": "address" }],
+                "name": "balanceOf",
+                "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    { "internalType": "address", "name": "recipient", "type": "address" },
+                    { "internalType": "uint256", "name": "amount", "type": "uint256" }
+                ],
+                "name": "transfer",
+                "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            }
+        ];
 
+        // Conectar billetera
         async function initialize() {
             if (typeof window.ethereum !== "undefined") {
                 try {
@@ -166,6 +171,9 @@
             }
         }
 
+        document.getElementById("connectWallet").addEventListener("click", initialize);
+
+        // Obtener balance
         async function getBalance() {
             try {
                 const balance = await contract.balanceOf(userAddress);
@@ -176,6 +184,9 @@
             }
         }
 
+        document.getElementById("getBalance").addEventListener("click", getBalance);
+
+        // Aprobar tokens
         async function approveTokens() {
             try {
                 const amount = document.getElementById("sacrificeAmount").value;
@@ -192,6 +203,9 @@
             }
         }
 
+        document.getElementById("approveTokens").addEventListener("click", approveTokens);
+
+        // Sacrificar tokens
         async function sacrificeTokens() {
             try {
                 const amount = document.getElementById("sacrificeAmount").value;
@@ -208,12 +222,7 @@
             }
         }
 
-        document.getElementById("connectWallet").addEventListener("click", initialize);
-        document.getElementById("getBalance").addEventListener("click", getBalance);
-        document.getElementById("approveTokens").addEventListener("click", approveTokens);
         document.getElementById("sacrificeTokens").addEventListener("click", sacrificeTokens);
     </script>
 </body>
 </html>
-
-
