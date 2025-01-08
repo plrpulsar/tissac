@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sacrificio DApp</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/web3/dist/web3.min.js"></script>
+    <script src="script.js" defer></script>
+</head>
+<body>
+    <div class="hero">
+        <header>
+            <h1>Sacrificio DApp</h1>
+            <p>Interactúa con la blockchain de forma fácil y segura</p>
+        </header>
+        <main>
+            <div class="wallet-section">
+                <button id="connectWallet">Conectar Wallet</button>
+            </div>
+            <div class="sacrifice-form">
+                <h2>Realizar Sacrificio</h2>
+                <div class="form-group">
+                    <label for="tokenSelect">Seleccionar Token:</label>
+                    <select id="tokenSelect">
+                        <option value="0xTokenAddress1">Token 1</option>
+                        <option value="0xTokenAddress2">Token 2</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="sacrificeAmount">Cantidad a Sacrificar:</label>
+                    <input type="number" id="sacrificeAmount" placeholder="0.0" min="0">
+                </div>
+                <button id="sacrificeButton">Sacrificar</button>
+            </div>
+        </main>
+        <footer>
+            <p>Desarrollado por <strong>Tu Proyecto Blockchain</strong> - Todos los derechos reservados.</p>
+        </footer>
+    </div>
+</body>
+</html>
