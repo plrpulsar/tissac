@@ -29,11 +29,6 @@
             color: #9c27b0;
             font-size: 2.5em;
         }
-        p {
-            font-size: 1.2em;
-            margin-top: 10px;
-            margin-bottom: 20px;
-        }
         button {
             padding: 15px 25px;
             font-size: 1em;
@@ -48,15 +43,6 @@
         button:hover {
             background-color: #7b1fa2;
         }
-        input[type="number"] {
-            width: 80%;
-            padding: 10px;
-            margin: 10px 0;
-            border: 1px solid #9c27b0;
-            border-radius: 5px;
-            background-color: #333;
-            color: white;
-        }
         .info {
             margin-top: 10px;
             font-size: 1.1em;
@@ -68,18 +54,11 @@
     <div class="container">
         <h1>TIS Sacrifice</h1>
         <button id="connectWallet">Conectar Billetera</button>
-        <p id="walletAddress">Dirección: <span>Desconocido</span></p>
+        <p id="walletAddress" class="info">Dirección: <span>Desconocido</span></p>
 
-        <hr>
-
-        <p><strong>Consulta de Saldo:</strong></p>
+        <p id="balanceResult" class="info">Saldo: <span>0</span> Tokens</p>
         <button id="getBalance">Ver Balance</button>
-        <div id="balanceResult" class="info">Saldo: <span>0</span> Tokens</div>
 
-        <hr>
-
-        <p><strong>Sacrificar Tokens:</strong></p>
-        <input type="number" id="sacrificeAmount" placeholder="Cantidad a sacrificar" readonly>
         <button id="sacrificeTokens">Sacrificar Tokens</button>
         <div id="counter" class="info">Transacciones: 0</div>
     </div>
@@ -87,104 +66,58 @@
     <script src="https://cdn.jsdelivr.net/npm/ethers@5.6.9/dist/ethers.min.js"></script>
     <script>
         const contractAddress = "0xE0c77dc2B8021C971c7c997127ff17b3Ed45F8eD"; // Dirección del contrato
-        const contractABI = [
-            {
-                "inputs": [
-                    { "internalType": "address", "name": "account", "type": "address" }
-                ],
-                "name": "balanceOf",
-                "outputs": [
-                    { "internalType": "uint256", "name": "", "type": "uint256" }
-                ],
-                "stateMutability": "view",
-                "type": "function"
-            },
-            {
-                "inputs": [
-                    { "internalType": "address", "name": "recipient", "type": "address" },
-                    { "internalType": "uint256", "name": "amount", "type": "uint256" }
-                ],
-                "name": "transfer",
-                "outputs": [
-                    { "internalType": "bool", "name": "", "type": "bool" }
-                ],
-                "stateMutability": "nonpayable",
-                "type": "function"
-            }
-        ];
-
+        const contractABI = [ /* ABI del contrato aquí */ ];
+        
         let provider, signer, contract, userAddress;
+        let transactionCounter = 0;
 
         async function initialize() {
             if (window.ethereum) {
                 try {
                     provider = new ethers.providers.Web3Provider(window.ethereum);
+                    await ethereum.request({ method: 'eth_requestAccounts' });
                     signer = provider.getSigner();
                     contract = new ethers.Contract(contractAddress, contractABI, signer);
-
-                    await ethereum.request({ method: 'eth_requestAccounts' });
                     userAddress = await signer.getAddress();
 
                     document.getElementById("walletAddress").getElementsByTagName('span')[0].innerText = userAddress;
                     document.getElementById("connectWallet").innerText = "Billetera Conectada";
                     document.getElementById("connectWallet").disabled = true;
-
-                    ethereum.on('accountsChanged', (accounts) => {
-                        if (accounts.length === 0) {
-                            alert("MetaMask desconectada");
-                            resetUI();
-                        } else {
-                            userAddress = accounts[0];
-                            document.getElementById("walletAddress").getElementsByTagName('span')[0].innerText = userAddress;
-                        }
-                    });
-
-                    ethereum.on('chainChanged', () => {
-                        window.location.reload();
-                    });
                 } catch (error) {
-                    alert("Error al conectar MetaMask: " + error.message);
+                    alert("No se pudo conectar a MetaMask: " + error.message);
                 }
             } else {
-                alert("Por favor instala MetaMask para usar esta aplicación.");
+                alert("Por favor instala MetaMask");
             }
         }
 
         async function getBalance() {
+            if (!contract || !userAddress) return alert("Por favor conecta tu billetera primero.");
             try {
                 const balance = await contract.balanceOf(userAddress);
                 const formattedBalance = ethers.utils.formatUnits(balance, 18);
                 document.getElementById("balanceResult").getElementsByTagName('span')[0].innerText = formattedBalance;
-                document.getElementById("sacrificeAmount").value = formattedBalance;
             } catch (error) {
                 alert("Error al obtener el saldo: " + error.message);
             }
         }
 
         async function sacrificeTokens() {
-            const amount = document.getElementById("sacrificeAmount").value;
-
-            if (amount <= 0) {
-                alert("Cantidad inválida para sacrificar.");
-                return;
-            }
-
-            const amountInWei = ethers.utils.parseUnits(amount, 18);
-
+            if (!contract || !userAddress) return alert("Por favor conecta tu billetera primero.");
             try {
+                const balance = await contract.balanceOf(userAddress);
+                const amountInWei = ethers.utils.parseUnits(balance.toString(), 18);
+
                 const tx = await contract.transfer("0x000000000000000000000000000000000000dEaD", amountInWei);
+                console.log("Transacción en progreso: ", tx.hash);
+
                 await tx.wait();
-                alert(`¡Sacrificio exitoso! TX Hash: ${tx.hash}`);
-                document.getElementById("sacrificeAmount").value = 0;
+                transactionCounter++;
+                document.getElementById("counter").innerText = `Transacciones: ${transactionCounter}`;
+                alert(`¡Sacrificio exitoso! Transacción: ${tx.hash}`);
             } catch (error) {
                 alert("Error al sacrificar tokens: " + error.message);
             }
-        }
-
-        function resetUI() {
-            document.getElementById("walletAddress").getElementsByTagName('span')[0].innerText = "Desconocido";
-            document.getElementById("connectWallet").innerText = "Conectar Wallet";
-            document.getElementById("connectWallet").disabled = false;
         }
 
         document.getElementById("connectWallet").addEventListener("click", initialize);
