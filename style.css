@@ -1,108 +1,161 @@
-/* Estilo general */
+/* Estilo base para el fondo oscuro */
 body {
-    margin: 0;
-    font-family: 'Arial', sans-serif;
-    background: linear-gradient(145deg, #0f0f0f, #1a1a1a);
+    font-family: Arial, sans-serif;
+    background-color: #1e1e1e;
     color: #fff;
+    margin: 0;
+    padding: 0;
     display: flex;
     justify-content: center;
     align-items: center;
     height: 100vh;
+    flex-direction: column;
 }
 
-/* Contenedor principal */
-.hero {
-    text-align: center;
-    padding: 20px;
-    width: 90%;
-    max-width: 800px;
-    border-radius: 15px;
-    background: linear-gradient(145deg, #1c1c1c, #262626);
-    box-shadow: 5px 5px 15px rgba(0, 0, 0, 0.5), -5px -5px 15px rgba(50, 50, 50, 0.1);
-    animation: fadeIn 1s ease-in-out;
-}
-
-/* Encabezado */
-header h1 {
-    font-size: 2.5rem;
-    color: #f1c40f;
-    margin-bottom: 10px;
-}
-
-header p {
-    font-size: 1.2rem;
-    color: #bdc3c7;
-}
-
-/* Botones */
-button {
-    font-size: 1rem;
+h1, h2, p {
     color: #fff;
-    background: linear-gradient(145deg, #2980b9, #3498db);
+    text-align: center;
+}
+
+h1 {
+    font-size: 36px;
+    margin-bottom: 20px;
+}
+
+/* Estilo del contenedor principal */
+.container {
+    width: 100%;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+    background: #333;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+}
+
+/* Estilo de los botones */
+button {
+    background-color: #9b59b6; /* Color morado brillante */
     border: none;
+    color: #fff;
+    padding: 15px 32px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
     border-radius: 5px;
-    padding: 10px 20px;
     cursor: pointer;
-    transition: transform 0.2s, background-color 0.3s;
+    margin: 10px 0;
+    transition: all 0.3s ease;
 }
 
 button:hover {
-    background: linear-gradient(145deg, #1a5d7f, #257aa1);
+    background-color: #8e44ad;
     transform: scale(1.05);
 }
 
-/* Formulario */
-.sacrifice-form {
-    margin-top: 20px;
-    padding: 20px;
-    background: linear-gradient(145deg, #181818, #222222);
-    border-radius: 10px;
-    box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.5), -3px -3px 10px rgba(50, 50, 50, 0.1);
-}
-
-.sacrifice-form h2 {
-    margin-bottom: 15px;
-    color: #e67e22;
-}
-
-.form-group {
-    margin-bottom: 15px;
-    text-align: left;
-}
-
-label {
-    font-size: 1rem;
-    margin-bottom: 5px;
-    display: block;
-    color: #ecf0f1;
-}
-
-input, select {
+/* Estilo para los campos de entrada */
+input[type="text"], input[type="number"], input[type="button"] {
     width: 100%;
-    padding: 10px;
-    margin-top: 5px;
+    padding: 15px;
+    margin: 10px 0;
+    background-color: #444;
+    color: #fff;
     border: none;
     border-radius: 5px;
-    background: #333;
+    font-size: 16px;
+}
+
+input[type="text"]:focus, input[type="number"]:focus {
+    background-color: #555;
+    outline: none;
+}
+
+/* Estilo para los contenedores de texto */
+.wallet-info, .balance-info, .sacrifice-info {
+    margin: 20px 0;
+}
+
+.wallet-info span, .balance-info span, .sacrifice-info span {
+    font-weight: bold;
+    color: #9b59b6;
+}
+
+/* Contenedor de transacciones */
+.transaction-counter {
+    margin: 20px 0;
+    font-size: 18px;
     color: #fff;
-    font-size: 1rem;
+    background-color: #333;
+    padding: 10px;
+    border-radius: 5px;
 }
 
-/* Pie de página */
+/* Estilo de los enlaces */
+a {
+    color: #9b59b6;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+/* Estilo para el pie de página */
 footer {
-    margin-top: 30px;
-    font-size: 0.9rem;
-    color: #95a5a6;
+    margin-top: 50px;
+    font-size: 14px;
+    color: #bbb;
 }
 
-/* Animaciones */
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(-10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+footer a {
+    color: #9b59b6;
+}
+
+/* Estilos de transición */
+* {
+    transition: all 0.3s ease;
+}
+
+/* Animaciones para botones */
+button {
+    position: relative;
+    overflow: hidden;
+}
+
+button:before {
+    content: '';
+    position: absolute;
+    width: 300%;
+    height: 300%;
+    background-color: rgba(255, 255, 255, 0.2);
+    transition: all 0.5s ease;
+    transform: scale(0);
+    pointer-events: none;
+}
+
+button:hover:before {
+    transform: scale(1);
+    top: 50%;
+    left: 50%;
+    margin-left: -150%;
+    margin-top: -150%;
+}
+
+/* Contenedor de la billetera conectada */
+#walletAddress {
+    font-size: 18px;
+    color: #fff;
+    margin-bottom: 20px;
+}
+
+#walletAddress span {
+    color: #9b59b6;
+    font-weight: bold;
+}
+
+/* Estilo para los títulos del formulario */
+form h2 {
+    margin-top: 20px;
+    color: #fff;
 }
