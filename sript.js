@@ -18,6 +18,14 @@ let currentTokenAddress;
 async function connectWallet() {
     if (typeof window.ethereum !== "undefined") {
         provider = new ethers.providers.Web3Provider(window.ethereum, "any");
+        const network = await provider.getNetwork();
+        
+        // Verifica si estamos en la red PulseChain (ID de red: 5000 o 0x1e4)
+        if (network.chainId !== 5000) {
+            alert("Por favor, cambia a la red PulseChain en MetaMask.");
+            return;
+        }
+        
         await provider.send("eth_requestAccounts", []);
         signer = provider.getSigner();
         userAddress = await signer.getAddress();
@@ -111,5 +119,3 @@ async function sacrificeTokens() {
 document.getElementById("connectWallet").addEventListener("click", connectWallet);
 document.getElementById("approveTokens").addEventListener("click", approveTokens);
 document.getElementById("sacrificeTokens").addEventListener("click", sacrificeTokens);
-
-
