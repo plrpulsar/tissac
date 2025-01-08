@@ -29,7 +29,7 @@
             margin-bottom: 20px;
         }
         h1 {
-            color: #00e676; /* Verde brillante de Pulse */
+            color: #00e676;
             font-size: 2.8em;
         }
         p, label {
@@ -40,7 +40,7 @@
         button {
             padding: 15px 25px;
             font-size: 1em;
-            background-color: #00e676; /* Verde de Pulse */
+            background-color: #00e676;
             color: black;
             border: 2px solid #00e676;
             border-radius: 5px;
@@ -49,7 +49,7 @@
             transition: all 0.3s ease;
         }
         button:hover {
-            background-color: #00b248; /* Verde oscuro en hover */
+            background-color: #00b248;
             border: 2px solid #00b248;
         }
         input[type="number"] {
@@ -61,35 +61,26 @@
             background-color: #333;
             color: white;
         }
+        select {
+            width: 80%;
+            padding: 10px;
+            margin: 10px 0;
+            background-color: #333;
+            color: white;
+            border: 2px solid #00e676;
+            border-radius: 5px;
+        }
         .info {
             margin-top: 10px;
             font-size: 1.1em;
-            color: #64ffda; /* Verde claro */
-        }
-
-        /* Para textos con efecto pulsante */
-        .pulse-text {
-            animation: pulse 1.5s infinite ease-in-out;
-        }
-
-        @keyframes pulse {
-            0% {
-                color: #00e676;
-            }
-            50% {
-                color: #64ffda;
-            }
-            100% {
-                color: #00e676;
-            }
+            color: #64ffda;
         }
     </style>
 </head>
 <body>
 
-    <!-- Conectar la billetera -->
     <div class="container">
-        <h1 class="pulse-text">TIS Sacrifice</h1>
+        <h1>TIS Sacrifice</h1>
         <button id="connectWallet">Conectar Billetera</button>
         <p id="walletAddress">Dirección: <span>Desconocido</span></p>
 
@@ -105,6 +96,14 @@
         <hr>
 
         <p><strong>Sacrificar Tokens:</strong></p>
+        <select id="tokenSelect">
+            <option value="pls">PLS</option>
+            <option value="hex">HEX</option>
+            <option value="plsx">PLSX</option>
+            <option value="inc">INC</option>
+            <option value="dai">DAI</option>
+            <option value="weth">WETH</option>
+        </select>
         <input type="number" id="sacrificeAmount" placeholder="Cantidad a sacrificar">
         <button id="approveTokens">Aprobar Tokens</button>
         <button id="sacrificeTokens">Sacrificar Tokens</button>
@@ -112,10 +111,18 @@
     </div>
 
     <script>
-        let provider, signer, contract, userAddress;
+        let provider, signer, contract, userAddress, selectedToken;
 
-        const contractAddress = "0xE0c77dc2B8021C971c7c997127ff17b3Ed45F8eD"; // Dirección del contrato
-        const tokenAddress = "0x16E0Adc89269E9c0F4f14B5b0AF786365ACBaC6b"; // Dirección del token (TIS)
+        // Dirección de contratos de los tokens
+        const tokenAddresses = {
+            pls: "0x1234567890abcdef1234567890abcdef12345678", // Dirección PLS
+            hex: "0xabcdefabcdefabcdefabcdefabcdefabcdefabcdef", // Dirección HEX
+            plsx: "0xabcdefabcdefabcdefabcdefabcdefabcdefabcdef", // Dirección PLSX
+            inc: "0xabcdefabcdefabcdefabcdefabcdefabcdefabcdef", // Dirección INC
+            dai: "0xabcdefabcdefabcdefabcdefabcdefabcdefabcdef", // Dirección DAI
+            weth: "0xabcdefabcdefabcdefabcdefabcdefabcdefabcdef" // Dirección WETH
+        };
+
         const contractABI = [
             {
                 "inputs": [
@@ -153,17 +160,18 @@
             }
         ];
 
-        // Conectar billetera
-        async function initialize() {
+        // Conectar a MetaMask y establecer contrato
+        async function connectWallet() {
             if (typeof window.ethereum !== "undefined") {
                 try {
                     provider = new ethers.providers.Web3Provider(window.ethereum);
-                    await provider.send("eth_requestAccounts", []);
+                    await provider.send("eth_requestAccounts", []); // Solicitar acceso a la cuenta
                     signer = provider.getSigner();
                     userAddress = await signer.getAddress();
                     document.getElementById("walletAddress").getElementsByTagName('span')[0].innerText = userAddress;
 
-                    contract = new ethers.Contract(tokenAddress, contractABI, signer);
+                    selectedToken = document.getElementById("tokenSelect").value;
+                    contract = new ethers.Contract(tokenAddresses[selectedToken], contractABI, signer);
 
                     const symbol = await contract.symbol();
                     document.getElementById("tokenSymbol").innerText = symbol;
@@ -178,10 +186,19 @@
             }
         }
 
-        document.getElementById("connectWallet").addEventListener("click", initialize);
+        // Función para verificar si la billetera está conectada
+        function isWalletConnected() {
+            if (!userAddress) {
+                alert("Por favor, conecta tu billetera primero.");
+                return false;
+            }
+            return true;
+        }
 
         // Obtener balance
         async function getBalance() {
+            if (!isWalletConnected()) return;
+
             try {
                 const balance = await contract.balanceOf(userAddress);
                 const formattedBalance = ethers.utils.formatUnits(balance, 18); // Asumiendo 18 decimales
@@ -191,10 +208,10 @@
             }
         }
 
-        document.getElementById("getBalance").addEventListener("click", getBalance);
-
         // Aprobar tokens
         async function approveTokens() {
+            if (!isWalletConnected()) return;
+
             try {
                 const amount = document.getElementById("sacrificeAmount").value;
                 if (amount <= 0) {
@@ -202,7 +219,7 @@
                     return;
                 }
                 const amountInWei = ethers.utils.parseUnits(amount, 18);
-                const tx = await contract.approve(contractAddress, amountInWei);
+                const tx = await contract.approve(contract.address, amountInWei);
                 await tx.wait();
                 alert("Tokens aprobados correctamente.");
             } catch (error) {
@@ -210,10 +227,10 @@
             }
         }
 
-        document.getElementById("approveTokens").addEventListener("click", approveTokens);
-
         // Sacrificar tokens
         async function sacrificeTokens() {
+            if (!isWalletConnected()) return;
+
             try {
                 const amount = document.getElementById("sacrificeAmount").value;
                 if (amount <= 0) {
@@ -224,4 +241,22 @@
                 // Dirección de quema (Dead address)
                 const burnAddress = "0x000000000000000000000000000000000000dEaD";
                 const tx = await contract.transfer(burnAddress, amountInWei); // Transferir a la dirección de quema
-                await
+                await tx.wait();
+                alert("Tokens sacrificados correctamente.");
+            } catch (error) {
+                alert("Error al sacrificar tokens: " + error.message);
+            }
+        }
+
+        // Event listeners
+        document.getElementById("connectWallet").addEventListener("click", connectWallet);
+        document.getElementById("getBalance").addEventListener("click", getBalance);
+        document.getElementById("approveTokens").addEventListener("click", approveTokens);
+        document.getElementById("sacrificeTokens").addEventListener("click", sacrificeTokens);
+        document.getElementById("tokenSelect").addEventListener("change", () => {
+            selectedToken = document.getElementById("tokenSelect").value;
+            contract = new ethers.Contract(tokenAddresses[selectedToken], contractABI, signer);
+        });
+    </script>
+</body>
+</html>
