@@ -22,15 +22,15 @@
         .container {
             text-align: center;
             padding: 20px;
-            background-color: #1a1a1a;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.6);
+            background-color: #1b1b1b;
+            border-radius: 15px;
+            box-shadow: 0 8px 16px rgba(0, 255, 0, 0.2);
             width: 400px;
             margin-bottom: 20px;
         }
         h1 {
-            color: #9c27b0;
-            font-size: 2.5em;
+            color: #00e676; /* Verde brillante de Pulse */
+            font-size: 2.8em;
         }
         p, label {
             font-size: 1.2em;
@@ -40,22 +40,23 @@
         button {
             padding: 15px 25px;
             font-size: 1em;
-            background-color: #9c27b0;
-            color: white;
-            border: none;
+            background-color: #00e676; /* Verde de Pulse */
+            color: black;
+            border: 2px solid #00e676;
             border-radius: 5px;
             cursor: pointer;
             margin: 10px;
-            transition: background-color 0.3s;
+            transition: all 0.3s ease;
         }
         button:hover {
-            background-color: #7b1fa2;
+            background-color: #00b248; /* Verde oscuro en hover */
+            border: 2px solid #00b248;
         }
         input[type="number"] {
             width: 80%;
             padding: 10px;
             margin: 10px 0;
-            border: 1px solid #9c27b0;
+            border: 2px solid #00e676;
             border-radius: 5px;
             background-color: #333;
             color: white;
@@ -63,7 +64,7 @@
         .info {
             margin-top: 10px;
             font-size: 1.1em;
-            color: #bb86fc;
+            color: #64ffda; /* Verde claro */
         }
 
         /* Estilo para la gráfica */
@@ -71,11 +72,33 @@
             width: 80%;
             max-width: 1200px;
             margin-top: 20px;
+            padding: 20px;
+            background-color: #121212;
+            border-radius: 15px;
+            box-shadow: 0 8px 16px rgba(0, 255, 0, 0.2);
         }
         iframe {
             width: 100%;
             height: 400px;
+            border-radius: 10px;
             border: none;
+        }
+
+        /* Para textos con efecto pulsante */
+        .pulse-text {
+            animation: pulse 1.5s infinite ease-in-out;
+        }
+
+        @keyframes pulse {
+            0% {
+                color: #00e676;
+            }
+            50% {
+                color: #64ffda;
+            }
+            100% {
+                color: #00e676;
+            }
         }
     </style>
 </head>
@@ -83,7 +106,7 @@
 
     <!-- Conectar la billetera -->
     <div class="container">
-        <h1>TIS Sacrifice</h1>
+        <h1 class="pulse-text">TIS Sacrifice</h1>
         <button id="connectWallet">Conectar Billetera</button>
         <p id="walletAddress">Dirección: <span>Desconocido</span></p>
 
