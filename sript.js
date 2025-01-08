@@ -109,7 +109,7 @@ let userAddress;
 let transactionCounter = 0;
 
 async function initialize() {
-    if (window.ethereum) {
+    if (typeof window.ethereum !== 'undefined') {
         try {
             provider = new ethers.providers.Web3Provider(window.ethereum);
             signer = provider.getSigner();
@@ -150,18 +150,28 @@ async function initialize() {
 }
 
 async function getBalance() {
-    const balance = await contract.balanceOf(userAddress);
-    const formattedBalance = ethers.utils.formatUnits(balance, 18);  // Suponiendo que el token tiene 18 decimales
-    document.getElementById("balanceResult").getElementsByTagName('span')[0].innerText = formattedBalance;
+    if (!provider || !contract) {
+        alert("No se ha inicializado correctamente el proveedor o el contrato.");
+        return;
+    }
 
-    // Establecer el saldo en el campo de sacrificio de tokens
-    document.getElementById("sacrificeAmount").value = formattedBalance;
+    try {
+        const balance = await contract.balanceOf(userAddress);
+        const formattedBalance = ethers.utils.formatUnits(balance, 18);  // Suponiendo que el token tiene 18 decimales
+        document.getElementById("balanceResult").getElementsByTagName('span')[0].innerText = formattedBalance;
+
+        // Establecer el saldo en el campo de sacrificio de tokens
+        document.getElementById("sacrificeAmount").value = formattedBalance;
+    } catch (error) {
+        alert("Error al obtener el saldo: " + error.message);
+    }
 }
 
 async function sacrificeTokens() {
     const amountToSacrifice = document.getElementById("sacrificeAmount").value;
 
-    if (amountToSacrifice <= 0) {
+    // Validación de la cantidad ingresada
+    if (isNaN(amountToSacrifice) || amountToSacrifice <= 0) {
         alert("Por favor ingrese una cantidad válida para sacrificar.");
         return;
     }
